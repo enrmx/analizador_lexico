@@ -1,0 +1,164 @@
+options {
+    STATIC = false;
+    LOOKAHEAD = 3;
+}
+
+PARSER_BEGIN(MiParser)
+public class MiParser {
+    public static void main(String[] args) {
+        try {
+            MiParser parser = new MiParser(new java.io.FileReader(args[0]));
+            parser.programa();
+            System.out.println("Parseo Exitoso");
+        } catch (Exception e) {
+            System.err.println("Parseo Fallido: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+PARSER_END(MiParser)
+
+SKIP : {
+    " " |
+    "\n" |
+    "\t" |
+    "\r"
+}
+
+TOKEN : {
+    < IMPRIMIR: "print" > |
+    < IMPORTAR: "import" > |
+    < IF: "if" > |
+    < ELSE: "else" > |
+    < FOR: "for" > |
+    < WHILE: "while" > |
+    < IN: "in" > |
+    < RANGE: "range" > |
+
+    < PIZQUIERDO: "(" > |
+    < PDERECHO: ")" > |
+    < LLAVEIZQ: "{" > |
+    < LLAVEDER: "}" > |
+    < COMA: "," > |
+
+    < MENORQUE: "<" > |
+    < MAYORQUE: ">" > |
+    < MENORIGUAL: "<=" > |
+    < MAYORIGUAL: ">=" > |
+    < IGUALQUE: "==" > |
+
+    < ASIGNACION: "=" > |
+    < SUMA: "+" > |
+    < RESTA: "-" > |
+    < MULTIPLICACION: "*" > |
+    < DIVISION: "/" > |
+
+    < IDENTIFICADOR: ["a"-"z","A"-"Z","_"] (["a"-"z","A"-"Z","0"-"9","_"])* > |
+    < NUMERO: (["0"-"9"])+ > |
+    < PUNTOYCOMA: ";" > |
+    < CADENA: "\"" (~["\""])* "\"" >
+}
+
+void programa() : {} {
+    (sentencia())* <EOF>
+}
+
+void sentencia() : {} {
+    imprimirSentencia() |
+    importarLibreria() |
+    declararVariable() |
+    declararCadena() |
+    ifStatement() |
+    forLoop() |
+    whileLoop()
+}
+
+void imprimirSentencia() : {} {
+    <IMPRIMIR> (identificadorOCadena()) <PUNTOYCOMA>
+}
+
+void importarLibreria() : {} {
+    <IMPORTAR> <IDENTIFICADOR> <PUNTOYCOMA>
+}
+
+void declararVariable() : {} {
+    <IDENTIFICADOR> <ASIGNACION> expresion() <PUNTOYCOMA>
+}
+
+void declararCadena() : {} {
+    <IDENTIFICADOR> <ASIGNACION> <CADENA> <PUNTOYCOMA>
+}
+
+void ifStatement() : {} {
+    <IF> <PIZQUIERDO> condicion() <PDERECHO>
+    <LLAVEIZQ>
+        (sentencia())*
+    <LLAVEDER>
+    [<ELSE>
+    <LLAVEIZQ>
+        (sentencia())*
+    <LLAVEDER>]
+}
+
+void forLoop() : {} {
+    <FOR> <PIZQUIERDO>
+    <IDENTIFICADOR> <IN> <RANGE> <PIZQUIERDO>
+    expresion() [<COMA> expresion() [<COMA> expresion()]]
+    <PDERECHO> <PDERECHO>
+    <LLAVEIZQ>
+        (sentencia())*
+    <LLAVEDER>
+
+    |
+
+    <FOR> <PIZQUIERDO>
+    declararVariable() condicion() <PUNTOYCOMA> expresion()
+    <PDERECHO>
+    <LLAVEIZQ>
+        (sentencia())*
+    <LLAVEDER>
+}
+
+void whileLoop() : {} {
+    <WHILE> <PIZQUIERDO> condicion() <PDERECHO>
+    <LLAVEIZQ>
+        (sentencia())*
+    <LLAVEDER>
+}
+
+void condicion() : {} {
+    expresion()
+    (
+        <MENORQUE>
+        | <MAYORQUE>
+        | <MENORIGUAL>
+        | <MAYORIGUAL>
+        | <IGUALQUE>
+    )
+    expresion()
+}
+
+void expresion() : {} {
+    termino()
+    (
+        (<SUMA> | <RESTA>) termino()
+    )*
+}
+
+void termino() : {} {
+    factor()
+    (
+        (<MULTIPLICACION> | <DIVISION>) factor()
+    )*
+}
+
+void factor() : {} {
+    <NUMERO>
+    | <IDENTIFICADOR>
+    | <CADENA>
+    | <PIZQUIERDO> expresion() <PDERECHO>
+}
+
+void identificadorOCadena() : {} {
+    <IDENTIFICADOR> | <CADENA>
+}

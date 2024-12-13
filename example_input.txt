@@ -1,0 +1,29 @@
+import numpy;
+
+x = 4;
+y = 5;
+
+nombre = "enrique";
+print nombre;
+
+for (i in range(0, 10)) {
+    suma = suma + i;
+    print suma;
+}
+
+while (x > y) {
+    x = x - 1;
+    print x;
+}
+
+
+if (x < y) {
+    z = x + y;
+    resultado = "menor que";
+}
+else {
+    z = x - y;
+    resultado = "mayor o igual";
+}
+
+print resultado;
